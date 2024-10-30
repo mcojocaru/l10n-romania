@@ -17,8 +17,12 @@ class AccountMoveLine(models.Model):
         l10n_ro_lines_for_notice = self.filtered(
             lambda x: x.product_id.type == "product" and x.is_l10n_ro_record
         )
-        move_id = self.mapped("move_id")[0]
-        valued_type = self.env.context.get("valued_type", move_id.move_type)
+        valued_type = False
+        for line in self:
+            valued_type = line.move_id.move_type
+            break
+
+        valued_type = self.env.context.get("valued_type", valued_type)
         remaining = self.with_context(valued_type=valued_type)
         invoice_in_notice_lines = self.env["account.move.line"].with_context(
             valued_type="invoice_in_notice"
