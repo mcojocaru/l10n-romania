@@ -12,6 +12,13 @@
                 t-att="vals.get('invoice_type_code_attrs', {})"
                 t-out="vals.get('invoice_type_code')"
             />
+            <cbc:TaxCurrencyCode
+                xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+                xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+                xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+                t-att="vals.get('tax_currency_code_attrs', {})"
+                t-out="vals.get('tax_currency_code')"
+            />
         </xpath>
         <xpath
             expr="//*[local-name()='LegalMonetaryTotal']"
