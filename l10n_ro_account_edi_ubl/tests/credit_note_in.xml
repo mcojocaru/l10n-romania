@@ -10,6 +10,7 @@
     <cbc:ID>FBRAO2095</cbc:ID>
     <cbc:IssueDate>2022-09-01</cbc:IssueDate>
     <cbc:InvoiceTypeCode>389</cbc:InvoiceTypeCode>
+    <cbc:TaxCurrencyCode>RON</cbc:TaxCurrencyCode>
     <cbc:DocumentCurrencyCode>RON</cbc:DocumentCurrencyCode>
     <cbc:BuyerReference>SCOALA GIMNAZIALA COMUNA FOENI</cbc:BuyerReference>
     <cac:OrderReference>
