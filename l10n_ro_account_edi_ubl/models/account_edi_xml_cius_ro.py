@@ -212,6 +212,7 @@ class AccountEdiXmlCIUSRO(models.Model):
             ]
             vals_list["vals"]["accounting_supplier_party_vals"] = customer_vals
 
+        # import ipdb; ipdb.set_trace()
         if invoice.company_id.l10n_ro_credit_note_einvoice:
             vals_list["main_template"] = "account_edi_ubl_cii.ubl_20_Invoice"
             vals_list["vals"]["invoice_type_code"] = 380
