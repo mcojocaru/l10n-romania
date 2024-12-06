@@ -13,7 +13,7 @@
                 t-out="vals.get('invoice_type_code')"
             />
         </xpath>
-        <xpath
+        <!-- <xpath
             expr="//*[local-name()='LegalMonetaryTotal']"
             position="after"
             xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
@@ -27,11 +27,11 @@
                     </t>
                 </cac:InvoiceLine>
             </t>
-        </xpath>
+        </xpath> -->
         <!-- suprasciere sa nu mai puna credit note line -->
-        <xpath expr="//*[local-name()='CreditNoteLine']" position="attributes">
+        <!-- <xpath expr="//*[local-name()='CreditNoteLine']" position="attributes">
             <attribute name="t-if">False</attribute>
-        </xpath>
+        </xpath> -->
         <xpath expr="//*[local-name()='IssueDate']" position="after">
             <cbc:DueDate
                 xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
@@ -61,7 +61,7 @@
         </xpath>
     </template>
 
-    <template
+    <!-- <template
         id="cius_InvoiceLineType"
         inherit_id="account_edi_ubl_cii.ubl_20_InvoiceLineType"
     >
@@ -76,5 +76,5 @@
         <xpath expr="//*[local-name()='CreditedQuantity']" position="attributes">
             <attribute name="t-if">False</attribute>
         </xpath>
-    </template>
+    </template> -->
 </odoo>
