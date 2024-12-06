@@ -38,7 +38,8 @@ class Account(models.Model):
             cont = cont[:-1]
 
         analytic = int(self.code[4:])
-        cont += "." + str(analytic)
+        if analytic:
+            cont += "." + str(analytic)
         return cont
 
     def name_get(self):
