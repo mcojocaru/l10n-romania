@@ -278,8 +278,11 @@ class MessageSPV(models.Model):
 
             if not invoice:
                 invoice = invoices.filtered(
-                    lambda i: message.name in i.l10n_ro_edi_previous_transaction
-                    or message.request_id in i.l10n_ro_edi_previous_transaction
+                    lambda i: i.l10n_ro_edi_previous_transaction
+                ).filtered(
+                    lambda i, name=message.name or "n/a", request_id=message.request_id: name
+                    in i.l10n_ro_edi_previous_transaction
+                    or request_id in i.l10n_ro_edi_previous_transaction
                 )
             if len(invoice) > 1:
                 _logger.warning(
@@ -376,44 +379,47 @@ class MessageSPV(models.Model):
         for message in self:
             if not message.attachment_id:
                 continue
-            if not message.attachment_xml_id:
-                message.get_xml_fom_zip()
+            message.render_xml_anaf_pdf()
 
-            xml_file = message.attachment_xml_id.raw
-            headers = {"Content-Type": "text/plain"}
-            xml = xml_file
-            val1 = "FACT1"
-            if b"<CreditNote" in xml:
-                val1 = "FCN"
-            val2 = "DA"
+    def render_xml_anaf_pdf(self, no_validate=None):
+        message = self
+        if not message.attachment_xml_id:
+            message.get_xml_fom_zip()
 
-            res = requests.post(
-                f"https://webservicesp.anaf.ro/prod/FCTEL/rest/transformare/{val1}/{val2}",
-                data=xml,
-                headers=headers,
-                timeout=25,
-            )
-            if "The requested URL was rejected" in res.text:
-                raise UserError(_("ANAF service unable to generate PDF from this XML."))
+        xml_file = message.attachment_xml_id.raw
+        headers = {"Content-Type": "text/plain"}
+        xml = xml_file
+        val1 = "FACT1"
+        if b"<CreditNote" in xml:
+            val1 = "FCN"
 
-            if res.status_code == 200:
-                pdf = b64encode(res.content)
-                pdf = pdf + b"=" * (len(pdf) % 3)  # Fix incorrect padding
-                file_name = f"{message.request_id}.pdf"
+        url = f"https://webservicesp.anaf.ro/prod/FCTEL/rest/transformare/{val1}"
+        if no_validate:
+            url = f"https://webservicesp.anaf.ro/prod/FCTEL/rest/transformare/{val1}/DA"
 
-                attachment_value = {
-                    "name": file_name,
-                    "datas": pdf,
-                    "type": "binary",
-                    "mimetype": "application/pdf",
-                }
+        res = requests.post(url, data=xml, headers=headers, timeout=25)
+        if "The requested URL was rejected" in res.text:
+            raise UserError(_("ANAF service unable to generate PDF from this XML."))
 
-                attachment_pdf = (
-                    self.env["ir.attachment"].sudo().create(attachment_value)
-                )
-                if message.attachment_anaf_pdf_id:
-                    message.attachment_anaf_pdf_id.sudo().unlink()
-                message.write({"attachment_anaf_pdf_id": attachment_pdf.id})
+        if res.status_code == 200:
+            pdf = b64encode(res.content)
+            pdf = pdf + b"=" * (len(pdf) % 3)  # Fix incorrect padding
+            file_name = f"{message.request_id}.pdf"
+
+            attachment_value = {
+                "name": file_name,
+                "datas": pdf,
+                "type": "binary",
+                "mimetype": "application/pdf",
+            }
+
+            attachment_pdf = self.env["ir.attachment"].sudo().create(attachment_value)
+            if message.attachment_anaf_pdf_id:
+                message.attachment_anaf_pdf_id.sudo().unlink()
+            message.write({"attachment_anaf_pdf_id": attachment_pdf.id})
+        else:
+            if no_validate is None:
+                self.render_xml_anaf_pdf(no_validate=True)
 
     def get_embedded_pdf(self):
         for message in self:
@@ -471,10 +477,13 @@ class MessageSPV(models.Model):
         self.ensure_one()
         return self._action_download(self.attachment_embedded_pdf_id.id)
 
-    def _action_download(self, attachment_field_id):
+    def _action_download(self, attachment_id):
+        attachment = self.env["ir.attachment"].sudo().browse(attachment_id)
+        attachment.generate_access_token()
+        access_token = attachment.access_token
         return {
             "type": "ir.actions.act_url",
-            "url": f"/web/content/{attachment_field_id}?download=true",
+            "url": f"/web/content/{attachment_id}?download=true&access_token={access_token}",  # noqa
             "target": "self",
         }
 

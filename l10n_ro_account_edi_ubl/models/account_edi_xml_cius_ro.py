@@ -123,9 +123,15 @@ class AccountEdiXmlCIUSRO(models.Model):
         vals_list[
             "TaxTotalType_template"
         ] = "l10n_ro_account_edi_ubl.ubl_20_TaxTotalType"
-        vals_list["vals"][
-            "customization_id"
-        ] = "urn:cen.eu:en16931:2017#compliant#urn:efactura.mfinante.ro:CIUS-RO:1.0.1"
+
+        vals_list["vals"].update(
+            {
+                "customization_id": "urn:cen.eu:en16931:2017#compliant#urn:efactura.mfinante.ro:CIUS-RO:1.0.1",  # noqa
+            }
+        )
+        if invoice.move_type == "out_invoice" and invoice.currency_id.name != "RON":
+            vals_list["vals"]["tax_currency_code"] = invoice.currency_id.name
+
         index = 1
         for val in vals_list["vals"]["invoice_line_vals"]:
             val["id"] = index
@@ -321,8 +327,9 @@ class AccountEdiXmlCIUSRO(models.Model):
             invoice, name, phone, mail, vat, country_code
         )
         if not invoice.partner_id.is_company and name and vat:
-            invoice.partner_id.is_company = True
-            invoice.partner_id.ro_vat_change()
+            if not invoice.partner_id.parent_id:
+                invoice.partner_id.is_company = True
+                invoice.partner_id.ro_vat_change()
         return res
 
     def _import_fill_invoice_form(self, journal, tree, invoice_form, qty_factor):
