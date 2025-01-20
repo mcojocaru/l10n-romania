@@ -14,6 +14,7 @@
         "security/ir.model.access.csv",
         "data/account_edi_data.xml",
         "data/ubl_templates.xml",
+        "data/mail_activity_data.xml",
         "views/res_config_settings_views.xml",
         "views/account_invoice.xml",
         "views/product_view.xml",
