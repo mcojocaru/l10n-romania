@@ -55,7 +55,7 @@ class AccountPayment(models.Model):
 
                 if not payment.move_id:
                     statement = payment.l10n_ro_statement_id
-                    amount = self.l10n_ro_statement_line_id.amount
+                    amount = payment.l10n_ro_statement_line_id.amount
                     statement._l10n_ro_update_balance_end(amount)
 
     def _get_l10n_ro_bank_statement(self):
